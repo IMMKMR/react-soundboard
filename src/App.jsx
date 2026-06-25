@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { SoundGrid } from './components/SoundGrid';
 import { Mixer } from './components/Mixer';
 import { EditModal } from './components/EditModal';
+import { SoundButton } from './components/SoundButton';
 import { audioEngine } from './lib/AudioEngine';
 import { ProjectManager } from './lib/ProjectManager';
 
@@ -16,6 +17,11 @@ export default function App() {
   const [globalFadeTime, setGlobalFadeTime] = useState(2.0);
   const [editingCueId, setEditingCueId] = useState(null);
 
+  const cuesRef = React.useRef(cues);
+  useEffect(() => {
+    cuesRef.current = cues;
+  }, [cues]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -26,6 +32,18 @@ export default function App() {
       } else if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         handleStopAll();
+      } else {
+        // Check hotkeys
+        const hotkeyMatch = cues.find(c => c.hotkey && c.hotkey.toLowerCase() === e.key.toLowerCase());
+        if (hotkeyMatch) {
+          e.preventDefault();
+          if (activeNodes.has(hotkeyMatch.id)) {
+            if (hotkeyMatch.fadeOutDuration > 0) handleFade(hotkeyMatch.id);
+            else handleStop(hotkeyMatch.id);
+          } else {
+            handlePlay(hotkeyMatch.id);
+          }
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -87,11 +105,23 @@ export default function App() {
         loop: false,
         fadeInDuration: 0,
         fadeOutDuration: 1,
+        pinned: false,
+        trimStart: 0,
+        trimEnd: 0,
+        speed: 1.0,
+        playNext: null,
         order: cues.length + newCues.length
       });
       
       if (!scenes.includes(scene)) {
         setScenes(prev => [...prev, scene].sort((a,b) => a.localeCompare(b, undefined, {numeric: true})));
+      }
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        await audioEngine.decodeAudio(file.name, arrayBuffer);
+      } catch (e) {
+        console.error("Failed to decode audio file on import", e);
       }
     }
 
@@ -113,7 +143,14 @@ export default function App() {
     }
   };
 
-  const handlePlay = async (cueId) => {
+  const handlePlay = async (cueId, optionalPlayChain) => {
+    const playChain = optionalPlayChain instanceof Set ? optionalPlayChain : new Set();
+    if (playChain.has(cueId)) {
+      console.warn("Infinite play loop detected. Stopping chain.");
+      return;
+    }
+    const newPlayChain = new Set(playChain).add(cueId);
+
     const cue = cues.find(c => c.id === cueId);
     if (!cue) return;
 
@@ -138,14 +175,27 @@ export default function App() {
     audioEngine.play(cue.id, buffer, {
       volume: cue.volume,
       loop: cue.loop,
-      fadeInDuration: 0,
-      onEnded: updateActiveNodes
+      fadeInDuration: cue.fadeInDuration || 0,
+      trimStart: cue.trimStart || 0,
+      trimEnd: cue.trimEnd || 0,
+      speed: cue.speed || 1.0,
+      onEnded: () => {
+        updateActiveNodes();
+        const currentCue = cuesRef.current.find(c => c.id === cue.id);
+        if (currentCue && currentCue.playNext) {
+          handlePlay(currentCue.playNext, newPlayChain);
+        }
+      }
     });
     
     updateActiveNodes();
   };
 
-  const handleFadeIn = async (cueId) => {
+  const handleFadeIn = async (cueId, optionalPlayChain) => {
+    const playChain = optionalPlayChain instanceof Set ? optionalPlayChain : new Set();
+    if (playChain.has(cueId)) return;
+    const newPlayChain = new Set(playChain).add(cueId);
+
     const cue = cues.find(c => c.id === cueId);
     if (!cue) return;
 
@@ -171,7 +221,16 @@ export default function App() {
       volume: cue.volume,
       loop: cue.loop,
       fadeInDuration: cue.fadeInDuration > 0 ? cue.fadeInDuration : globalFadeTime,
-      onEnded: updateActiveNodes
+      trimStart: cue.trimStart || 0,
+      trimEnd: cue.trimEnd || 0,
+      speed: cue.speed || 1.0,
+      onEnded: () => {
+        updateActiveNodes();
+        const currentCue = cuesRef.current.find(c => c.id === cue.id);
+        if (currentCue && currentCue.playNext) {
+          handleFadeIn(currentCue.playNext, newPlayChain);
+        }
+      }
     });
     
     updateActiveNodes();
@@ -205,15 +264,30 @@ export default function App() {
     audioEngine.setVolume(cueId, volume);
   };
 
+  const handleSpeedChange = (cueId, speed) => {
+    setCues(prev => prev.map(c => c.id === cueId ? { ...c, speed } : c));
+    audioEngine.setSpeed(cueId, speed);
+  };
+
   const handleSeek = (cueId, timeSeconds) => {
     audioEngine.seek(cueId, timeSeconds);
   };
 
-  const handleDropCue = (cueId, targetScene) => {
+  const handleDropCue = (cueId, targetScene, targetIndex = -1) => {
     setCues(prev => {
-      const newCues = prev.map(c => c.id === cueId ? { ...c, scene: targetScene } : c);
+      let newCues = prev.map(c => c.id === cueId ? { ...c, scene: targetScene } : c);
+      if (targetIndex >= 0) {
+        const cueToMove = newCues.find(c => c.id === cueId);
+        let sceneCues = newCues.filter(c => c.scene === targetScene && c.id !== cueId).sort((a,b) => a.order - b.order);
+        sceneCues.splice(targetIndex, 0, cueToMove);
+        sceneCues.forEach((c, idx) => { c.order = idx; });
+      }
       return newCues;
     });
+  };
+
+  const handleTogglePin = (cueId) => {
+    setCues(prev => prev.map(c => c.id === cueId ? { ...c, pinned: !c.pinned } : c));
   };
 
   // Edit Modal actions
@@ -223,7 +297,12 @@ export default function App() {
       setScenes(prev => [...prev, data.scene].sort((a,b) => a.localeCompare(b, undefined, {numeric: true})));
     }
     if (activeNodes.has(id)) {
-      audioEngine.setVolume(id, data.volume);
+      if (data.volume !== undefined) {
+        audioEngine.setVolume(id, data.volume);
+      }
+      if (data.speed !== undefined) {
+        audioEngine.setSpeed(id, data.speed);
+      }
     }
     setEditingCueId(null);
   };
@@ -285,21 +364,47 @@ export default function App() {
       />
       
       <div className="content-wrapper">
-        <main className="main-content">
-          <SoundGrid 
-            cues={cues}
-            scenes={scenes}
-            activeNodes={activeNodes}
-            onPlay={handlePlay}
-            onFadeIn={handleFadeIn}
-            onStop={handleStop}
-            onFade={handleFade}
-            onEdit={(id) => setEditingCueId(id)}
-            onRemoveScene={handleRemoveScene}
-            onVolumeChange={handleVolumeChange}
-            onDropCue={handleDropCue}
-          />
-        </main>
+        <div className="middle-section">
+          <main className="main-content">
+            <SoundGrid 
+              cues={cues}
+              scenes={scenes}
+              activeNodes={activeNodes}
+              onPlay={handlePlay}
+              onFadeIn={handleFadeIn}
+              onStop={handleStop}
+              onFade={handleFade}
+              onEdit={(id) => setEditingCueId(id)}
+              onRemoveScene={handleRemoveScene}
+              onVolumeChange={handleVolumeChange}
+              onDropCue={handleDropCue}
+              onTogglePin={handleTogglePin}
+              onToggleLoop={(id) => {
+                const cue = cues.find(c => c.id === id);
+                if (cue) saveEdit(id, { loop: !cue.loop });
+              }}
+            />
+          </main>
+          
+          <aside className="pinned-sidebar">
+            <div className="pinned-header">Pinned Sounds</div>
+            <div className="pinned-content">
+              {cues.filter(c => c.pinned).sort((a,b) => a.order - b.order).map(cue => (
+                <SoundButton
+                  key={cue.id}
+                  cue={cue}
+                  isActive={activeNodes.has(cue.id)}
+                  onPlay={handlePlay}
+                  onStop={handleStop}
+                  onFade={handleFade}
+                  onEdit={(id) => setEditingCueId(id)}
+                  onVolumeChange={handleVolumeChange}
+                  onTogglePin={handleTogglePin}
+                />
+              ))}
+            </div>
+          </aside>
+        </div>
         
         <Mixer 
           activeNodes={activeNodes}
@@ -309,6 +414,7 @@ export default function App() {
           onStop={handleStop}
           onFadeIn={handleFadeIn}
           onFade={handleFade}
+          onSpeedChange={handleSpeedChange}
           onToggleLoop={(id) => {
             const cue = cues.find(c => c.id === id);
             if (cue) {
@@ -329,6 +435,7 @@ export default function App() {
       {editingCueId && (
         <EditModal 
           cue={cues.find(c => c.id === editingCueId)}
+          cuesList={cues}
           onSave={saveEdit}
           onCancel={() => setEditingCueId(null)}
           onDelete={deleteCue}

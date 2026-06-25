@@ -18,6 +18,12 @@ export class ProjectManager {
         fadeInDuration: c.fadeInDuration,
         fadeOutDuration: c.fadeOutDuration,
         order: c.order,
+        pinned: c.pinned,
+        trimStart: c.trimStart,
+        trimEnd: c.trimEnd,
+        speed: c.speed,
+        playNext: c.playNext,
+        hotkey: c.hotkey,
       }))
     };
     

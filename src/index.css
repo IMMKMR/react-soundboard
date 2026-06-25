@@ -140,6 +140,12 @@ body {
   overflow: hidden;
 }
 
+.middle-section {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -185,7 +191,7 @@ body {
 
 .scene-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
 }
 
@@ -194,9 +200,12 @@ body {
   background: var(--btn-bg);
   border: 2px solid var(--btn-border);
   border-radius: 12px;
-  height: 120px;
+  width: 100%;
+  min-height: 160px;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -233,12 +242,12 @@ body {
 }
 
 .sound-btn-content {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  z-index: 2;
   padding: 16px;
   display: flex;
   flex-direction: column;
-  z-index: 2;
+  flex: 1;
 }
 
 .sound-btn-name {
@@ -247,6 +256,8 @@ body {
   line-height: 1.3;
   word-break: break-word;
   flex: 1;
+  padding-left: 20px;
+  padding-right: 40px;
 }
 
 .sound-btn-time {
@@ -256,9 +267,73 @@ body {
   font-weight: 600;
 }
 
+/* Sound Button adjustments */
+.sound-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  flex-wrap: wrap;
+}
+
+.sound-controls .btn {
+  padding: 8px 14px !important;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px;
+  border: none !important;
+  transition: all 0.2s;
+}
+
+.sound-controls .btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1);
+}
+
+.pin-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s;
+}
+
+.pin-btn:hover {
+  transform: scale(1.2);
+}
+
+/* Pinned Sidebar */
+.pinned-sidebar {
+  width: 320px;
+  background: rgba(15, 23, 42, 0.4);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.pinned-header {
+  padding: 16px 24px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--accent-blue);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.pinned-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 /* Mixer */
 .mixer-panel {
-  height: 250px;
+  height: 350px;
   background: var(--panel-bg);
   border-top: 1px solid rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
@@ -288,12 +363,12 @@ body {
 .mixer-channel {
   background: rgba(0,0,0,0.2);
   border-radius: 8px;
-  padding: 12px;
-  width: 250px;
-  min-width: 250px;
+  padding: 16px;
+  width: 480px;
+  min-width: 480px;
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 16px;
   border: 1px solid rgba(255,255,255,0.05);
 }
 
@@ -305,7 +380,7 @@ body {
 
 .mixer-channel-name {
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -319,7 +394,7 @@ body {
 }
 
 .mixer-channel-time {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
   text-align: right;
@@ -334,8 +409,9 @@ body {
 
 .btn-mixer {
   flex: 1;
-  padding: 6px;
-  font-size: 0.8rem;
+  padding: 10px;
+  font-size: 0.9rem;
+  font-weight: bold;
   background: rgba(0,0,0,0.3);
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 6px;
@@ -358,20 +434,20 @@ body {
 
 .mixer-slider::-webkit-slider-runnable-track {
   width: 100%;
-  height: 6px;
+  height: 10px;
   cursor: pointer;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
 .mixer-slider::-webkit-slider-thumb {
-  height: 14px;
-  width: 14px;
+  height: 20px;
+  width: 20px;
   border-radius: 50%;
   background: var(--text-main);
   cursor: pointer;
   -webkit-appearance: none;
-  margin-top: -4px;
+  margin-top: -5px;
   box-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 

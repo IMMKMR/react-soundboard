@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiSquare, FiRepeat } from 'react-icons/fi';
 import { audioEngine } from '../lib/AudioEngine';
 
-export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFadeIn, onFade, onToggleLoop }) {
+export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFadeIn, onFade, onToggleLoop, onSpeedChange }) {
   const [positions, setPositions] = useState({});
 
   useEffect(() => {
@@ -37,7 +37,9 @@ export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFad
         ) : (
           activeTracks.map(cue => {
             const pos = positions[cue.id] || 0;
-            const duration = audioEngine.getBuffer(cue.fileName)?.duration || 0;
+            const bufferDuration = audioEngine.getBuffer(cue.fileName)?.duration || 0;
+            const tStart = cue.trimStart || 0;
+            const tEnd = (cue.trimEnd > tStart) ? cue.trimEnd : bufferDuration;
             
             const formatTime = (seconds) => {
               const m = Math.floor(seconds / 60);
@@ -47,12 +49,57 @@ export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFad
 
             return (
               <div key={cue.id} className="mixer-channel">
-                <div className="mixer-channel-header">
-                  <div className="mixer-channel-name" title={cue.name}>{cue.name}</div>
-                  <div className="mixer-channel-time">{formatTime(pos)} / {formatTime(duration)}</div>
+                <div className="mixer-channel-left" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div className="mixer-channel-header">
+                    <div className="mixer-channel-name" title={cue.name}>{cue.name}</div>
+                    <div className="mixer-channel-time">{formatTime(Math.max(0, pos - tStart))} / {formatTime(tEnd - tStart)}</div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', width: '25px' }}>Pos</span>
+                    <input 
+                      type="range" 
+                      className="mixer-slider seek-slider"
+                      min={tStart} 
+                      max={tEnd} 
+                      step="0.1" 
+                      value={pos} 
+                      onChange={(e) => onSeek(cue.id, Number(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span style={{ fontSize: '0.75rem', width: '30px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{pos.toFixed(1)}</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', width: '25px' }}>Vol</span>
+                    <input 
+                      type="range" 
+                      className="mixer-slider vol-slider"
+                      min="0" 
+                      max="100" 
+                      value={cue.volume} 
+                      onChange={(e) => onVolumeChange(cue.id, Number(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span style={{ fontSize: '0.75rem', width: '30px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{cue.volume}%</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', width: '25px' }}>Spd</span>
+                    <input 
+                      type="range" 
+                      className="mixer-slider speed-slider"
+                      min="0.1" 
+                      max="3.0" 
+                      step="0.1"
+                      value={cue.speed || 1.0} 
+                      onChange={(e) => onSpeedChange(cue.id, Number(e.target.value))}
+                      style={{ flex: 1 }}
+                    />
+                    <span style={{ fontSize: '0.75rem', width: '30px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{(cue.speed || 1.0).toFixed(1)}x</span>
+                  </div>
                 </div>
 
-                <div className="mixer-channel-actions">
+                <div className="mixer-channel-actions" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
                   <button 
                     className="btn btn-mixer" 
                     onClick={() => onStop(cue.id)} 
@@ -60,14 +107,6 @@ export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFad
                     style={{ color: '#ef4444' }}
                   >
                     <FiSquare /> Stop
-                  </button>
-                  <button 
-                    className="btn btn-mixer" 
-                    onClick={() => onFadeIn(cue.id)} 
-                    title="Fade In"
-                    style={{ color: 'var(--btn-playing)' }}
-                  >
-                    ↗ Fade In
                   </button>
                   <button 
                     className="btn btn-mixer" 
@@ -84,31 +123,6 @@ export function Mixer({ activeNodes, cues, onVolumeChange, onSeek, onStop, onFad
                   >
                     <FiRepeat /> Loop
                   </button>
-                </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', width: '25px' }}>Pos</span>
-                  <input 
-                    type="range" 
-                    className="mixer-slider seek-slider"
-                    min="0" 
-                    max={duration} 
-                    step="0.1" 
-                    value={pos} 
-                    onChange={(e) => onSeek(cue.id, Number(e.target.value))}
-                  />
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', width: '25px' }}>Vol</span>
-                  <input 
-                    type="range" 
-                    className="mixer-slider vol-slider"
-                    min="0" 
-                    max="100" 
-                    value={cue.volume} 
-                    onChange={(e) => onVolumeChange(cue.id, Number(e.target.value))}
-                  />
                 </div>
               </div>
             );

@@ -1,7 +1,8 @@
 import React from 'react';
-import { FiX, FiSquare, FiChevronDown, FiRepeat } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi';
+import { SoundButton } from './SoundButton';
 
-export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop, onFade, onEdit, onRemoveScene, onVolumeChange, onDropCue }) {
+export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop, onFade, onEdit, onRemoveScene, onVolumeChange, onDropCue, onTogglePin, onToggleLoop }) {
   if (cues.length === 0) {
     return (
       <div className="empty-state">
@@ -31,7 +32,8 @@ export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop,
   return (
     <div className="soundboard-container">
       {scenes.map(scene => {
-        const sceneCues = cues.filter(c => c.scene === scene).sort((a, b) => a.order - b.order);
+        const sceneCues = cues.filter(c => c.scene === scene && !c.pinned).sort((a, b) => a.order - b.order);
+        if (sceneCues.length === 0 && scene !== 'default') return null; // Hide empty scenes if all cues are pinned
         
         return (
           <div 
@@ -55,52 +57,22 @@ export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop,
             </div>
             
             <div className="scene-row">
-              {sceneCues.map(cue => {
-                const isActive = activeNodes.has(cue.id);
-                
-                return (
-                  <div 
-                    key={cue.id}
-                    className={`sound-btn ${isActive ? 'playing' : ''}`}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, cue.id)}
-                    onClick={() => onPlay(cue.id)}
-                    onContextMenu={(e) => { e.preventDefault(); onEdit(cue.id); }}
-                  >
-                    {cue.loop && (
-                      <div style={{ position: 'absolute', top: 12, right: 12, color: isActive ? 'var(--btn-playing)' : 'var(--text-secondary)' }}>
-                        <FiRepeat />
-                      </div>
-                    )}
-                    
-                    <div className="sound-btn-fill" style={{ width: isActive ? '100%' : '0%', transition: 'width 0.1s linear' }}></div>
-                    
-                    <div className="sound-btn-content">
-                      <div className="sound-btn-name">{cue.name}</div>
-                      <div className="sound-btn-time">{isActive ? 'Playing' : ''}</div>
-                      
-                      <div className="sound-controls" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
-                        <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: '#ef4444', border: 'none' }} onClick={() => onStop(cue.id)} title="Stop">
-                          <FiSquare />
-                        </button>
-                        <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: 'var(--btn-playing)', border: 'none', fontWeight: 'bold' }} onClick={() => onFadeIn(cue.id)} title="Fade In">
-                          ↗
-                        </button>
-                        <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontWeight: 'bold' }} onClick={() => onFade(cue.id)} title="Fade Out">
-                          ↘
-                        </button>
-                        <input 
-                          type="range" 
-                          min="0" max="100" 
-                          value={cue.volume} 
-                          onChange={(e) => onVolumeChange(cue.id, Number(e.target.value))}
-                          style={{ width: '100%', accentColor: 'var(--text-secondary)' }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {sceneCues.map((cue, index) => (
+                <SoundButton
+                  key={cue.id}
+                  cue={cue}
+                  isActive={activeNodes.has(cue.id)}
+                  onPlay={onPlay}
+                  onFadeIn={onFadeIn}
+                  onStop={onStop}
+                  onFade={onFade}
+                  onEdit={onEdit}
+                  onVolumeChange={onVolumeChange}
+                  onTogglePin={onTogglePin}
+                  onToggleLoop={onToggleLoop}
+                  onDropCue={(sourceId) => onDropCue(sourceId, scene, index)}
+                />
+              ))}
             </div>
           </div>
         );

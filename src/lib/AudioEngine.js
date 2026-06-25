@@ -34,7 +34,7 @@ export class AudioEngine {
   }
 
   play(trackId, buffer, options = {}) {
-    const { volume = 100, loop = false, onEnded = null, fadeInDuration = 0 } = options;
+    const { volume = 100, loop = false, onEnded = null, fadeInDuration = 0, trimStart = 0, trimEnd = 0, speed = 1.0 } = options;
     
     // Stop existing if any
     if (this.activeNodes.has(trackId)) {
@@ -44,6 +44,11 @@ export class AudioEngine {
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = loop;
+    if (trimStart > 0 || trimEnd > 0) {
+      source.loopStart = trimStart || 0;
+      source.loopEnd = trimEnd > 0 ? trimEnd : buffer.duration;
+    }
+    source.playbackRate.value = speed;
 
     const gainNode = this.ctx.createGain();
     const targetVolume = volume / 100;
@@ -60,9 +65,13 @@ export class AudioEngine {
     source.connect(gainNode);
     gainNode.connect(this.ctx.destination);
 
-    source.start(0);
+    if (trimEnd > trimStart && !loop) {
+      source.start(0, trimStart, trimEnd - trimStart);
+    } else {
+      source.start(0, trimStart);
+    }
 
-    const activeInfo = { source, gainNode, startedAt: this.ctx.currentTime };
+    const activeInfo = { source, gainNode, startedAt: this.ctx.currentTime, trimStart, trimEnd, bufferDuration: buffer.duration, speed };
     
     source.onended = () => {
       // Clean up if it naturally ends and wasn't manually stopped
@@ -81,6 +90,16 @@ export class AudioEngine {
     if (active) {
       const targetGain = volumePercent / 100;
       active.gainNode.gain.setTargetAtTime(targetGain, this.ctx.currentTime, 0.05);
+    }
+  }
+
+  setSpeed(trackId, speed) {
+    const active = this.activeNodes.get(trackId);
+    if (active) {
+      const currentPosRelative = this.getPlaybackPosition(trackId) - (active.trimStart || 0);
+      active.source.playbackRate.setValueAtTime(speed, this.ctx.currentTime);
+      active.speed = speed;
+      active.startedAt = this.ctx.currentTime - (currentPosRelative / speed);
     }
   }
 
@@ -129,11 +148,17 @@ export class AudioEngine {
   getPlaybackPosition(trackId) {
     const active = this.activeNodes.get(trackId);
     if (!active) return 0;
-    let pos = this.ctx.currentTime - active.startedAt;
+    
+    let elapsedTime = (this.ctx.currentTime - active.startedAt) * active.speed;
+    const duration = (active.trimEnd > active.trimStart) ? (active.trimEnd - active.trimStart) : (active.bufferDuration - active.trimStart);
+    
     if (active.source.loop) {
-      pos = pos % active.source.buffer.duration;
+      elapsedTime = elapsedTime % duration;
+    } else if (elapsedTime > duration) {
+      elapsedTime = duration;
     }
-    return pos;
+    
+    return (active.trimStart || 0) + elapsedTime;
   }
 
   seek(trackId, timeSeconds) {
@@ -144,12 +169,18 @@ export class AudioEngine {
     const buffer = active.source.buffer;
     const loop = active.source.loop;
     const currentGain = active.gainNode.gain.value;
+    const { trimStart = 0, trimEnd = 0, bufferDuration, speed = 1.0 } = active;
     
     this.stop(trackId);
     
     const source = this.ctx.createBufferSource();
     source.buffer = buffer;
     source.loop = loop;
+    if (trimStart > 0 || trimEnd > 0) {
+      source.loopStart = trimStart || 0;
+      source.loopEnd = trimEnd > 0 ? trimEnd : bufferDuration;
+    }
+    source.playbackRate.value = speed;
     
     const gainNode = this.ctx.createGain();
     gainNode.gain.value = currentGain;
@@ -157,9 +188,19 @@ export class AudioEngine {
     source.connect(gainNode);
     gainNode.connect(this.ctx.destination);
     
-    source.start(0, timeSeconds);
+    const playOffset = Math.max(trimStart, timeSeconds);
     
-    const newActiveInfo = { source, gainNode, startedAt: this.ctx.currentTime - timeSeconds };
+    if (trimEnd > trimStart && !loop) {
+      const remaining = trimEnd - playOffset;
+      if (remaining > 0) {
+        source.start(0, playOffset, remaining);
+      }
+    } else {
+      source.start(0, playOffset);
+    }
+    
+    const startedAt = this.ctx.currentTime - ((playOffset - trimStart) / speed);
+    const newActiveInfo = { source, gainNode, startedAt, trimStart, trimEnd, bufferDuration, speed };
     this.activeNodes.set(trackId, newActiveInfo);
   }
 }
