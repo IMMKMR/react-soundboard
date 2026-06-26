@@ -17,6 +17,8 @@ export default function App() {
   const [globalFadeTime, setGlobalFadeTime] = useState(2.0);
   const [editingCueId, setEditingCueId] = useState(null);
 
+  const [selectedMixerTrackId, setSelectedMixerTrackId] = useState(null);
+  
   const cuesRef = React.useRef(cues);
   useEffect(() => {
     cuesRef.current = cues;
@@ -25,7 +27,7 @@ export default function App() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'TEXTAREA' || (e.target.tagName === 'INPUT' && e.target.type !== 'range')) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         handleFadeAll();
@@ -33,22 +35,56 @@ export default function App() {
         e.preventDefault();
         handleStopAll();
       } else {
-        // Check hotkeys
-        const hotkeyMatch = cues.find(c => c.hotkey && c.hotkey.toLowerCase() === e.key.toLowerCase());
-        if (hotkeyMatch) {
-          e.preventDefault();
-          if (activeNodes.has(hotkeyMatch.id)) {
-            if (hotkeyMatch.fadeOutDuration > 0) handleFade(hotkeyMatch.id);
-            else handleStop(hotkeyMatch.id);
-          } else {
-            handlePlay(hotkeyMatch.id);
+        // Handle number keys 1-9 for Mixer selection / fade out
+        const digitMatch = (e.code || "").match(/^(?:Digit|Numpad)([1-9])$/);
+        if (digitMatch) {
+          const index = parseInt(digitMatch[1]) - 1;
+          const activeTracks = Array.from(activeNodes.keys());
+          if (index < activeTracks.length) {
+            e.preventDefault();
+            if (e.shiftKey) {
+              handleFadeOut(activeTracks[index], globalFadeTime);
+            } else {
+              setSelectedMixerTrackId(activeTracks[index]);
+            }
+            return;
           }
+        }
+        
+        // Handle +/- for selected active track volume
+        if (e.key === '=' || e.key === '+' || e.key === '-' || e.code === 'NumpadAdd' || e.code === 'NumpadSubtract') {
+          if (selectedMixerTrackId && activeNodes.has(selectedMixerTrackId)) {
+            e.preventDefault();
+            const adjustment = (e.key === '-' || e.code === 'NumpadSubtract') ? -5 : 5;
+            setCues(prev => {
+              const next = prev.map(c => {
+                if (c.id === selectedMixerTrackId) {
+                  const currentVol = Number(c.volume) || 0;
+                  const newVol = Math.min(300, Math.max(0, currentVol + adjustment));
+                  audioEngine.setVolume(c.id, newVol);
+                  return { ...c, volume: newVol };
+                }
+                return c;
+              });
+              return next;
+            });
+            return;
+          }
+        }
+
+        // Check hotkeys
+        const hotkeyMatches = cues.filter(c => c.hotkey && c.hotkey.toLowerCase() === e.key.toLowerCase());
+        if (hotkeyMatches.length > 0) {
+          e.preventDefault();
+          hotkeyMatches.forEach(match => {
+            handleToggle(match.id);
+          });
         }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cues, activeNodes, globalFadeTime]);
+  }, [cues, activeNodes, globalFadeTime, selectedMixerTrackId]);
 
   const updateActiveNodes = useCallback(() => {
     setActiveNodes(new Map(audioEngine.activeNodes));
@@ -109,6 +145,7 @@ export default function App() {
         trimStart: 0,
         trimEnd: 0,
         speed: 1.0,
+        reverb: 0,
         playNext: null,
         order: cues.length + newCues.length
       });
@@ -143,7 +180,7 @@ export default function App() {
     }
   };
 
-  const handlePlay = async (cueId, optionalPlayChain) => {
+  const handlePlay = async (cueId, optionalPlayChain, overrideFadeIn = null) => {
     const playChain = optionalPlayChain instanceof Set ? optionalPlayChain : new Set();
     if (playChain.has(cueId)) {
       console.warn("Infinite play loop detected. Stopping chain.");
@@ -175,10 +212,11 @@ export default function App() {
     audioEngine.play(cue.id, buffer, {
       volume: cue.volume,
       loop: cue.loop,
-      fadeInDuration: cue.fadeInDuration || 0,
+      fadeInDuration: overrideFadeIn !== null ? overrideFadeIn : (cue.fadeInDuration || 0),
       trimStart: cue.trimStart || 0,
       trimEnd: cue.trimEnd || 0,
       speed: cue.speed || 1.0,
+      reverb: cue.reverb || 0,
       onEnded: () => {
         updateActiveNodes();
         const currentCue = cuesRef.current.find(c => c.id === cue.id);
@@ -191,62 +229,40 @@ export default function App() {
     updateActiveNodes();
   };
 
-  const handleFadeIn = async (cueId, optionalPlayChain) => {
+  const handleFadeOut = (cueId, duration, optionalPlayChain) => {
     const playChain = optionalPlayChain instanceof Set ? optionalPlayChain : new Set();
     if (playChain.has(cueId)) return;
     const newPlayChain = new Set(playChain).add(cueId);
 
     const cue = cues.find(c => c.id === cueId);
-    if (!cue) return;
-
-    await audioEngine.ensureResumed();
-
-    let buffer = audioEngine.getBuffer(cue.fileName);
-    if (!buffer) {
-      const file = fileMap.get(cue.fileName);
-      if (!file) {
-        alert("Audio file not found in memory. Please re-import or reload workspace.");
-        return;
-      }
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        buffer = await audioEngine.decodeAudio(cue.fileName, arrayBuffer);
-      } catch (e) {
-        alert("Failed to decode audio file: " + cue.fileName);
-        return;
-      }
-    }
-
-    audioEngine.play(cue.id, buffer, {
-      volume: cue.volume,
-      loop: cue.loop,
-      fadeInDuration: cue.fadeInDuration > 0 ? cue.fadeInDuration : globalFadeTime,
-      trimStart: cue.trimStart || 0,
-      trimEnd: cue.trimEnd || 0,
-      speed: cue.speed || 1.0,
-      onEnded: () => {
+    if (cue) {
+      audioEngine.fadeOut(cueId, duration);
+      setTimeout(() => {
         updateActiveNodes();
-        const currentCue = cuesRef.current.find(c => c.id === cue.id);
+        const currentCue = cuesRef.current.find(c => c.id === cueId);
         if (currentCue && currentCue.playNext) {
-          handleFadeIn(currentCue.playNext, newPlayChain);
+          handlePlay(currentCue.playNext, newPlayChain);
         }
+      }, duration * 1000 + 100);
+    }
+  };
+
+  const handleToggle = (cueId) => {
+    if (activeNodes.has(cueId)) {
+      const cue = cues.find(c => c.id === cueId);
+      if (cue && cue.fadeOutDuration > 0) {
+        handleFadeOut(cueId, cue.fadeOutDuration);
+      } else {
+        handleStop(cueId);
       }
-    });
-    
-    updateActiveNodes();
+    } else {
+      handlePlay(cueId);
+    }
   };
 
   const handleStop = (cueId) => {
     audioEngine.stop(cueId);
     updateActiveNodes();
-  };
-
-  const handleFade = (cueId) => {
-    const cue = cues.find(c => c.id === cueId);
-    if (cue) {
-      audioEngine.fadeOut(cueId, cue.fadeOutDuration || 1);
-      setTimeout(updateActiveNodes, (cue.fadeOutDuration || 1) * 1000 + 100);
-    }
   };
 
   const handleFadeAll = () => {
@@ -267,6 +283,11 @@ export default function App() {
   const handleSpeedChange = (cueId, speed) => {
     setCues(prev => prev.map(c => c.id === cueId ? { ...c, speed } : c));
     audioEngine.setSpeed(cueId, speed);
+  };
+
+  const handleReverbChange = (cueId, reverb) => {
+    setCues(prev => prev.map(c => c.id === cueId ? { ...c, reverb } : c));
+    audioEngine.setReverb(cueId, reverb);
   };
 
   const handleSeek = (cueId, timeSeconds) => {
@@ -302,6 +323,12 @@ export default function App() {
       }
       if (data.speed !== undefined) {
         audioEngine.setSpeed(id, data.speed);
+      }
+      if (data.reverb !== undefined) {
+        audioEngine.setReverb(id, data.reverb);
+      }
+      if (data.loop !== undefined) {
+        audioEngine.setLoop(id, data.loop);
       }
     }
     setEditingCueId(null);
@@ -371,9 +398,10 @@ export default function App() {
               scenes={scenes}
               activeNodes={activeNodes}
               onPlay={handlePlay}
-              onFadeIn={handleFadeIn}
+              onToggle={handleToggle}
+              onFadeIn={(id) => handlePlay(id, null, globalFadeTime)}
               onStop={handleStop}
-              onFade={handleFade}
+              onFadeOut={(id) => handleFadeOut(id, globalFadeTime)}
               onEdit={(id) => setEditingCueId(id)}
               onRemoveScene={handleRemoveScene}
               onVolumeChange={handleVolumeChange}
@@ -395,8 +423,10 @@ export default function App() {
                   cue={cue}
                   isActive={activeNodes.has(cue.id)}
                   onPlay={handlePlay}
+                  onToggle={handleToggle}
+                  onFadeIn={(id) => handlePlay(id, null, globalFadeTime)}
                   onStop={handleStop}
-                  onFade={handleFade}
+                  onFadeOut={(id) => handleFadeOut(id, globalFadeTime)}
                   onEdit={(id) => setEditingCueId(id)}
                   onVolumeChange={handleVolumeChange}
                   onTogglePin={handleTogglePin}
@@ -409,12 +439,15 @@ export default function App() {
         <Mixer 
           activeNodes={activeNodes}
           cues={cues}
+          selectedTrackId={selectedMixerTrackId}
+          onSelectTrack={setSelectedMixerTrackId}
           onVolumeChange={handleVolumeChange}
           onSeek={handleSeek}
           onStop={handleStop}
-          onFadeIn={handleFadeIn}
-          onFade={handleFade}
+          onFadeIn={(id) => handlePlay(id, null, globalFadeTime)}
+          onFadeOut={(id) => handleFadeOut(id, globalFadeTime)}
           onSpeedChange={handleSpeedChange}
+          onReverbChange={handleReverbChange}
           onToggleLoop={(id) => {
             const cue = cues.find(c => c.id === id);
             if (cue) {
@@ -430,6 +463,9 @@ export default function App() {
         <div><span style={{ color: 'white', fontWeight: 'bold' }}>Right Click</span> Edit Sound</div>
         <div><span style={{ color: 'white', fontWeight: 'bold' }}>Esc</span> Fade Out All</div>
         <div><span style={{ color: 'white', fontWeight: 'bold' }}>Backspace</span> Stop All Immediately</div>
+        <div><span style={{ color: 'white', fontWeight: 'bold' }}>1-9</span> Select Track</div>
+        <div><span style={{ color: 'white', fontWeight: 'bold' }}>Shift + 1-9</span> Fade Track</div>
+        <div><span style={{ color: 'white', fontWeight: 'bold' }}>+/-</span> Selected Vol</div>
       </div>
 
       {editingCueId && (

@@ -6,6 +6,22 @@ export class AudioEngine {
     
     // Global fade out settings
     this.globalFadeTime = 2.0; 
+    
+    // Create simple reverb impulse response
+    this.reverbBuffer = this._createReverbBuffer(2.0, 2.0);
+  }
+
+  _createReverbBuffer(duration, decay) {
+    const sampleRate = this.ctx.sampleRate;
+    const length = sampleRate * duration;
+    const buffer = this.ctx.createBuffer(2, length, sampleRate);
+    const left = buffer.getChannelData(0);
+    const right = buffer.getChannelData(1);
+    for (let i = 0; i < length; i++) {
+      left[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+      right[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+    return buffer;
   }
 
   async ensureResumed() {
@@ -34,7 +50,7 @@ export class AudioEngine {
   }
 
   play(trackId, buffer, options = {}) {
-    const { volume = 100, loop = false, onEnded = null, fadeInDuration = 0, trimStart = 0, trimEnd = 0, speed = 1.0 } = options;
+    const { volume = 100, loop = false, onEnded = null, fadeInDuration = 0, trimStart = 0, trimEnd = 0, speed = 1.0, reverb = 0 } = options;
     
     // Stop existing if any
     if (this.activeNodes.has(trackId)) {
@@ -62,7 +78,21 @@ export class AudioEngine {
       gainNode.gain.linearRampToValueAtTime(targetVolume, this.ctx.currentTime + 0.05);
     }
 
-    source.connect(gainNode);
+    const wetGain = this.ctx.createGain();
+    const dryGain = this.ctx.createGain();
+    const convolver = this.ctx.createConvolver();
+    convolver.buffer = this.reverbBuffer;
+
+    wetGain.gain.value = reverb / 100;
+    dryGain.gain.value = 1.0;
+
+    source.connect(dryGain);
+    source.connect(wetGain);
+    
+    wetGain.connect(convolver);
+    convolver.connect(gainNode);
+    dryGain.connect(gainNode);
+    
     gainNode.connect(this.ctx.destination);
 
     if (trimEnd > trimStart && !loop) {
@@ -71,7 +101,7 @@ export class AudioEngine {
       source.start(0, trimStart);
     }
 
-    const activeInfo = { source, gainNode, startedAt: this.ctx.currentTime, trimStart, trimEnd, bufferDuration: buffer.duration, speed };
+    const activeInfo = { source, gainNode, wetGain, convolver, dryGain, startedAt: this.ctx.currentTime, trimStart, trimEnd, bufferDuration: buffer.duration, speed, reverb };
     
     source.onended = () => {
       // Clean up if it naturally ends and wasn't manually stopped
@@ -103,6 +133,25 @@ export class AudioEngine {
     }
   }
 
+  setReverb(trackId, reverbPercent) {
+    const active = this.activeNodes.get(trackId);
+    if (active && active.wetGain) {
+      active.wetGain.gain.setTargetAtTime(reverbPercent / 100, this.ctx.currentTime, 0.05);
+      active.reverb = reverbPercent;
+    }
+  }
+
+  setLoop(trackId, loop) {
+    const active = this.activeNodes.get(trackId);
+    if (active) {
+      active.source.loop = loop;
+      if (loop && (active.trimStart > 0 || active.trimEnd > 0)) {
+        active.source.loopStart = active.trimStart || 0;
+        active.source.loopEnd = active.trimEnd > 0 ? active.trimEnd : active.bufferDuration;
+      }
+    }
+  }
+
   fadeOut(trackId, durationSeconds = 1.0) {
     const active = this.activeNodes.get(trackId);
     if (!active) return;
@@ -128,6 +177,9 @@ export class AudioEngine {
       }
       active.source.disconnect();
       active.gainNode.disconnect();
+      if (active.wetGain) active.wetGain.disconnect();
+      if (active.dryGain) active.dryGain.disconnect();
+      if (active.convolver) active.convolver.disconnect();
       this.activeNodes.delete(trackId);
     }
   }
@@ -169,7 +221,7 @@ export class AudioEngine {
     const buffer = active.source.buffer;
     const loop = active.source.loop;
     const currentGain = active.gainNode.gain.value;
-    const { trimStart = 0, trimEnd = 0, bufferDuration, speed = 1.0 } = active;
+    const { trimStart = 0, trimEnd = 0, bufferDuration, speed = 1.0, reverb = 0 } = active;
     
     this.stop(trackId);
     
@@ -185,7 +237,21 @@ export class AudioEngine {
     const gainNode = this.ctx.createGain();
     gainNode.gain.value = currentGain;
     
-    source.connect(gainNode);
+    const wetGain = this.ctx.createGain();
+    const dryGain = this.ctx.createGain();
+    const convolver = this.ctx.createConvolver();
+    convolver.buffer = this.reverbBuffer;
+
+    wetGain.gain.value = reverb / 100;
+    dryGain.gain.value = 1.0;
+
+    source.connect(dryGain);
+    source.connect(wetGain);
+    
+    wetGain.connect(convolver);
+    convolver.connect(gainNode);
+    dryGain.connect(gainNode);
+    
     gainNode.connect(this.ctx.destination);
     
     const playOffset = Math.max(trimStart, timeSeconds);
@@ -200,7 +266,7 @@ export class AudioEngine {
     }
     
     const startedAt = this.ctx.currentTime - ((playOffset - trimStart) / speed);
-    const newActiveInfo = { source, gainNode, startedAt, trimStart, trimEnd, bufferDuration, speed };
+    const newActiveInfo = { source, gainNode, wetGain, convolver, dryGain, startedAt, trimStart, trimEnd, bufferDuration, speed, reverb };
     this.activeNodes.set(trackId, newActiveInfo);
   }
 }

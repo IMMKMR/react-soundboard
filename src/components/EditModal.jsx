@@ -16,6 +16,7 @@ export function EditModal({ cue, cuesList = [], onSave, onCancel, onDelete, onDu
         trimStart: cue.trimStart,
         trimEnd: cue.trimEnd,
         speed: cue.speed || 1.0,
+        reverb: cue.reverb || 0,
         playNext: cue.playNext || '',
         hotkey: cue.hotkey || ''
       });
@@ -52,7 +53,7 @@ export function EditModal({ cue, cuesList = [], onSave, onCancel, onDelete, onDu
             <label>Volume (%)</label>
             <input 
               type="number" 
-              min="0" max="100" 
+              min="0" max="300" 
               value={formData.volume || 0} 
               onChange={e => setFormData({...formData, volume: Number(e.target.value)})} 
             />
@@ -145,6 +146,17 @@ export function EditModal({ cue, cuesList = [], onSave, onCancel, onDelete, onDu
                 onChange={e => setFormData({...formData, speed: Number(e.target.value)})} 
               />
             </div>
+            <div style={{ flex: 1 }}>
+              <label>Reverb (%)</label>
+              <input 
+                type="number" 
+                min="0" max="100" step="1" 
+                value={formData.reverb || 0} 
+                onChange={e => setFormData({...formData, reverb: Number(e.target.value)})} 
+              />
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
             <div style={{ flex: 1 }}>
               <label>Play Next (Auto-Follow)</label>
               <select 

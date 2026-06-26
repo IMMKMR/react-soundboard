@@ -1,17 +1,12 @@
 import React from 'react';
 import { FiSquare, FiRepeat, FiStar } from 'react-icons/fi';
+import { audioEngine } from '../lib/AudioEngine';
+import { SmoothSlider } from './SmoothSlider';
 
-export function SoundButton({ cue, isActive, onPlay, onFadeIn, onStop, onFade, onEdit, onVolumeChange, onTogglePin, onToggleLoop, onDropCue }) {
+export function SoundButton({ cue, isActive, onPlay, onToggle, onFadeIn, onStop, onFadeOut, onEdit, onVolumeChange, onTogglePin, onToggleLoop, onDropCue }) {
   const handleClick = () => {
-    if (isActive) {
-      if (cue.fadeOutDuration > 0) {
-        onFade(cue.id);
-      } else {
-        onStop(cue.id);
-      }
-    } else {
-      onPlay(cue.id);
-    }
+    if (onToggle) onToggle(cue.id);
+    else onPlay(cue.id);
   };
 
   return (
@@ -26,7 +21,7 @@ export function SoundButton({ cue, isActive, onPlay, onFadeIn, onStop, onFade, o
         const sourceId = e.dataTransfer.getData('text/plain');
         if (sourceId && onDropCue) onDropCue(sourceId);
       }}
-      onClick={handleClick}
+      onMouseDown={(e) => { if (e.button === 0) handleClick(); }}
       onContextMenu={(e) => { e.preventDefault(); onEdit(cue.id); }}
     >
       {cue.loop && (
@@ -55,24 +50,30 @@ export function SoundButton({ cue, isActive, onPlay, onFadeIn, onStop, onFade, o
         <div className="sound-btn-name">{cue.name}</div>
         <div className="sound-btn-time">{isActive ? 'Playing' : ''}</div>
         
-        <div className="sound-controls" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+        <div 
+          className="sound-controls" 
+          onMouseDown={(e) => e.stopPropagation()} 
+          draggable 
+          onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }} 
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: 'auto' }}
+        >
           <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: '#ef4444', border: 'none' }} onClick={() => onStop(cue.id)} title="Stop">
             <FiSquare />
           </button>
           <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: 'var(--btn-playing)', border: 'none', fontWeight: 'bold' }} onClick={() => onFadeIn(cue.id)} title="Fade In">
             ↗
           </button>
-          <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontWeight: 'bold' }} onClick={() => onFade(cue.id)} title="Fade Out">
+          <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: 'var(--text-secondary)', border: 'none', fontWeight: 'bold' }} onClick={() => onFadeOut(cue.id)} title="Fade Out">
             ↘
           </button>
           <button className="btn" style={{ padding: '4px 8px', background: 'transparent', color: cue.loop ? 'var(--btn-playing)' : 'var(--text-secondary)', border: 'none' }} onClick={() => onToggleLoop(cue.id)} title="Toggle Loop">
             <FiRepeat />
           </button>
-          <input 
-            type="range" 
-            min="0" max="100" 
+          <SmoothSlider 
+            min="0" max="300" 
             value={cue.volume} 
-            onChange={(e) => onVolumeChange(cue.id, Number(e.target.value))}
+            onChange={(val) => audioEngine.setVolume(cue.id, val)}
+            onCommit={(val) => onVolumeChange(cue.id, val)}
             style={{ width: '100%', accentColor: 'var(--text-secondary)' }}
           />
         </div>

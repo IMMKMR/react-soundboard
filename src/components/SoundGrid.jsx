@@ -2,7 +2,7 @@ import React from 'react';
 import { FiX } from 'react-icons/fi';
 import { SoundButton } from './SoundButton';
 
-export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop, onFade, onEdit, onRemoveScene, onVolumeChange, onDropCue, onTogglePin, onToggleLoop }) {
+export function SoundGrid({ cues, scenes, activeNodes, onPlay, onToggle, onFadeIn, onStop, onFadeOut, onEdit, onRemoveScene, onVolumeChange, onDropCue, onTogglePin, onToggleLoop }) {
   if (cues.length === 0) {
     return (
       <div className="empty-state">
@@ -63,9 +63,10 @@ export function SoundGrid({ cues, scenes, activeNodes, onPlay, onFadeIn, onStop,
                   cue={cue}
                   isActive={activeNodes.has(cue.id)}
                   onPlay={onPlay}
+                  onToggle={onToggle}
                   onFadeIn={onFadeIn}
                   onStop={onStop}
-                  onFade={onFade}
+                  onFadeOut={onFadeOut}
                   onEdit={onEdit}
                   onVolumeChange={onVolumeChange}
                   onTogglePin={onTogglePin}
