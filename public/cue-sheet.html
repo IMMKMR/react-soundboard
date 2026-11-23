@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Potiphar Ki Patni — Sound Operator Cue Sheet</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --gold: #fbbf24;
+    --green: #34d399;
+    --red: #f87171;
+    --quote-bg: rgba(56, 189, 248, 0.08);
+  }
+  body.light {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #0284c7;
+    --gold: #b45309;
+    --green: #059669;
+    --red: #dc2626;
+    --quote-bg: #f1f5f9;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 20px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+  }
+  h1 { margin: 0 0 4px; font-size: 1.5rem; letter-spacing: 0.3px; }
+  .sub { color: var(--muted); font-size: 0.9rem; }
+  .sub a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .sub a:hover { text-decoration: underline; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+  button, .btn-link {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  button:hover, .btn-link:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #0f172a; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.9; color: #0f172a; }
+  .shortcuts {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  kbd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 1px 6px;
+    color: var(--text);
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.8rem;
+  }
+  .scene {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    overflow: hidden;
+    page-break-inside: avoid;
+  }
+  .scene-head {
+    padding: 11px 18px;
+    background: rgba(56, 189, 248, 0.12);
+    border-bottom: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 1.02rem;
+    color: var(--accent);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .scene.empty .scene-head {
+    background: rgba(148, 163, 184, 0.1);
+    color: var(--muted);
+  }
+  .empty-note {
+    padding: 12px 18px;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.9rem;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-size: 0.9rem;
+  }
+  tr:last-child td { border-bottom: none; }
+  th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    background: rgba(0, 0, 0, 0.12);
+  }
+  tr.done td { opacity: 0.42; text-decoration: line-through; }
+  .chk { width: 28px; text-align: center; }
+  input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+  .cue-name { font-weight: 700; color: var(--gold); white-space: nowrap; }
+  body.light .cue-name { color: #9a3412; }
+  .badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 5px;
+    margin-top: 4px;
+    letter-spacing: 0.4px;
+  }
+  .b-loop { background: rgba(56, 189, 248, 0.18); color: var(--accent); }
+  .b-shot { background: rgba(251, 191, 36, 0.18); color: var(--gold); }
+  .b-empty { background: rgba(148, 163, 184, 0.2); color: var(--muted); }
+  .go {
+    background: var(--quote-bg);
+    border-left: 3px solid var(--accent);
+    padding: 5px 9px;
+    border-radius: 0 6px 6px 0;
+  }
+  .go strong { color: var(--text); }
+  .note { color: var(--muted); font-size: 0.85rem; }
+  @media (max-width: 720px) {
+    body { padding: 10px; }
+    th:nth-child(4), td:nth-child(4) { display: none; }
+    .cue-name { white-space: normal; }
+  }
+  @media print {
+    body { background: #fff; color: #000; padding: 0; }
+    :root { --bg:#fff; --card:#fff; --border:#ccc; --text:#000; --muted:#444; --accent:#0369a1; --gold:#92400e; --quote-bg:#f5f5f5; }
+    .toolbar, .chk { display: none; }
+    .scene { border-radius: 6px; margin-bottom: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>🎭 POTIPHAR KI PATNI — Sound Operator Cue Sheet</h1>
+      <div class="sub">Live Soundboard: <a href="https://immkmr.github.io/react-soundboard/" target="_blank">immkmr.github.io/react-soundboard</a></div>
+    </div>
+    <div class="toolbar">
+      <a class="btn-link btn-primary" href="https://immkmr.github.io/react-soundboard/" target="_blank">Open Soundboard</a>
+      <button onclick="document.body.classList.toggle('light')">Light / Dark</button>
+      <button onclick="resetChecks()">Reset Ticks</button>
+      <button onclick="window.print()">Print / Save PDF</button>
+    </div>
+  </header>
+
+  <div class="shortcuts">
+    <div><strong>Controls:</strong> <kbd>Esc</kbd> Fade All · <kbd>Backspace</kbd> Stop All · <kbd>1–9</kbd> Select Track · <kbd>Shift+1–9</kbd> Fade Track · <kbd>+ / -</kbd> Volume</div>
+    <div><strong>Pinned Hotkeys:</strong> <kbd>R</kbd> Rimshot · <kbd>B</kbd> Boing · <kbd>O</kbd> Crowd Ooh · <kbd>L</kbd> Laugh · <kbd>T</kbd> Sad Trombone · <kbd>A</kbd> Applause</div>
+  </div>
+
+  <!-- SCENE 1 -->
+  <section class="scene">
+    <div class="scene-head">01 – Pre-Show &amp; Scene 1 (Mirror)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(House lights dim / Halki roshni. Zuleikha aaine ke saamne khadi hai.)</em></div></td><td><div class="cue-name">Pre-Show Egyptian Ambience</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly under opening monologue; fade out when Mirror 1 steps in to waltz.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Zuleikha:</strong> "…khoobsurti sirf ek gift nahi hai. Yeh ek <strong>currency</strong> hai."</div></td><td><div class="cue-name">Beauty is Currency (Cha-Ching)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "currency hai."</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Mirror 1 steps in and leads Zuleikha in a waltz step)</em></div></td><td><div class="cue-name">Mirror Waltz / Arabic Dance</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop under Mirror 1 ↔ Mirror 2 dance; fade out when Zuleikha breaks away to Mirror.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Aaina 2:</strong> "Sweet bolengi… lekin andar se poora <strong>jealousy mode ON!</strong>"</div></td><td><div class="cue-name">Jealousy Joke (Rimshot)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "jealousy mode ON!"</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Chessboard — 4 moves: Aaina 2 move → Aaina 1 move → "Mar gayi woh…" move → "Check…!!!")</em></div></td><td><div class="cue-name">Chess Move Tap</div><span class="badge b-shot">ONE-SHOT ×4</span></td><td class="note">Tap once per chess piece move.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>ALL:</strong> "Presence… Power… Position…" <strong>Aaina 2:</strong> "<strong>Boom…!!! Three P's</strong>"</div></td><td><div class="cue-name">BOOM! Three P's (Quick Ting)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Single clean ting on "Boom…!!! Three P's".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>ALL:</strong> "Chehra, Charm, Charisma" <strong>Aaina 2:</strong> "<strong>That's Three C's baby…</strong>"</div></td><td><div class="cue-name">Three C's Baby (Magical Twinkle)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Single clean twinkle on "Three C's baby…".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Aaina 1:</strong> "(Moves a coin in place) <strong>Check…!!!</strong>" → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">Check! Blackout Stinger</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit immediately on Blackout.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CHORUS 1 -->
+  <section class="scene empty">
+    <div class="scene-head">02 – Chorus 1 ("Hamaari Duniya") <span class="badge b-empty">EMPTY / LIVE</span></div>
+    <div class="empty-note">Left empty for now (live singing / TBD).</div>
+  </section>
+
+  <!-- SCENE 2 -->
+  <section class="scene">
+    <div class="scene-head">03 – Scene 2 (Aangan / Stream)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Lights up — Zuleikha wading in stream, girls washing clothes, Mirrors fishing)</em></div></td><td><div class="cue-name">Nile River Stream Bed</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly; fade out when they run to portico and spot Potiphar.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>ALL: GIGGLES</strong> <em>(after "Mandiron ki kami", "VIP darshan", "pati takle", "ubli hui bhaaji", "like &amp; subscribe")</em></div></td><td><div class="cue-name">Girls Giggling</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">5s mature wicked multi-girl laugh.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Neriya:</strong> "…Regular darshan ke liye ek line aur <strong>VIP darshan ke liye premium charge.</strong>"</div></td><td><div class="cue-name">VIP Darshan Temple Bell</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right after "premium charge."</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>ALL:</strong> "<strong>Ohhh! Ho!</strong>" <em>(Didi bana do)</em> &amp; "<strong>OOOOhhhh…!</strong>" <em>(chehre par glow Unreal!)</em></div></td><td><div class="cue-name">Crowd Ooh / Shock</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Sitcom crowd ooh on both beats.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(They run to portico and realize <strong>POTIPHAR is waiting there…</strong>)</em></div></td><td><div class="cue-name">Potiphar Waiting (Suspense Hit)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Fade out River bed + hit stinger.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Joseph:</strong> "Khaana taiyaar hai!" <em>(Zuleikha freezes)</em> <strong>Aaina 1:</strong> "<strong>What a handsome man..</strong>"</div></td><td><div class="cue-name">Joseph Enters (Heavenly Choir)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play right as Zuleikha gazes at Joseph.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Potiphar touches his nose)</em> <strong>Zuleikha (off-stage):</strong> "<strong>Tumhari naak tedhi hai…</strong>"</div></td><td><div class="cue-name">Naak Tedhi Hai! (Cartoon Boing)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Immediate boing on "naak tedhi hai…".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Potiphar is caught off guard. Exits flustered.)</em> → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">Potiphar Flustered Exit (Fail)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Comic exit into Blackout.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CHORUS 2 -->
+  <section class="scene empty">
+    <div class="scene-head">04 – Chorus 2 ("Chaahat Ka Ghar") <span class="badge b-empty">EMPTY / LIVE</span></div>
+    <div class="empty-note">Left empty for now (live singing / TBD).</div>
+  </section>
+
+  <!-- SCENE 3 -->
+  <section class="scene">
+    <div class="scene-head">05 – Scene 3 (Potiphar's Study)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Lights up — Potiphar &amp; Bhandaari studying accounts; Zuleikha watching near entrance)</em></div></td><td><div class="cue-name">Study Egyptian Oud Groove</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop very softly (40%); fade out when Potiphar exits.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "…<strong>ghar se seedhe gaddhe mein aur gaddhe se seedhe ghulaami mein.</strong> Ab promotion se darr lagta hai."</div></td><td><div class="cue-name">Promotion Joke (Sad Trombone)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "ghulaami mein."</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 4 -->
+  <section class="scene">
+    <div class="scene-head">06 – Scene 4 (Joseph's Quarters)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Yusuf ek kone mein sone ki taiyaari karta hai. Nighttime.)</em></div></td><td><div class="cue-name">Night Crickets Ambience</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly until Blackout.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "Khoobsurti raah bana sakti hai…" through "sach ke liye keemat chukaani padti hai."</div></td><td><div class="cue-name">Joseph Truth Speech (Piano)</div><span class="badge b-loop">LOOP</span></td><td class="note">Fade in under Joseph's serious lines; fade out as he exits.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>ALL:</strong> "Power… Presence… Position…" <strong>Aaina 1+2:</strong> "<strong>3 P's</strong>"</div></td><td><div class="cue-name">3 P's Callback (Quick Ting)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit on "3 P's".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Zuleikha:</strong> "Chehra, Charm, Charisma." <strong>Aaina 1+2:</strong> "<strong>3 C's</strong>" → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">3 C's Callback (Magical Twinkle)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit on "3 C's", then Esc to fade crickets.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 5 -->
+  <section class="scene">
+    <div class="scene-head">07 – Scene 5 (Bageecha / Garden)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Lights up — Garden. Zuleikha fixing hair in mirror; Yusuf enters.)</em></div></td><td><div class="cue-name">Palace Garden Morning Birds</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly; fade out before "Kaisa naam?".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Aaina 1:</strong> "Ruk ise abhi mute karta hoon." <em>(Fiddles with TV remote)</em></div></td><td><div class="cue-name">Mirror TV Remote Mute (Static)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Short burst as Mirror 1 clicks remote.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Aaina 1:</strong> "<strong>Aaj toh ye full ghazal mode mein hai.</strong>"</div></td><td><div class="cue-name">Ghazal Mode Joke (Tabla)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play 2–3s then stop/fade.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "<strong>Paap.</strong>" … "<strong>Haan paap…!!!</strong>" → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">PAAP! Lightning Thunder Reveal</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit Thunder right on "Haan paap…!!!"</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CHORUS 3 -->
+  <section class="scene empty">
+    <div class="scene-head">08 – Chorus 3 ("DESIRE") <span class="badge b-empty">EMPTY / LIVE</span></div>
+    <div class="empty-note">Left empty for now (live singing / TBD).</div>
+  </section>
+
+  <!-- SCENE 6 -->
+  <section class="scene">
+    <div class="scene-head">09 – Scene 6 (Vastra &amp; Chase)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Zuleikha:</strong> "Potiphar yahaan nahi hain." <em>(Tension builds as she corners Yusuf)</em></div></td><td><div class="cue-name">Temptation Tension Drone</div><span class="badge b-loop">LOOP</span></td><td class="note">Keep low under dialogue; swell slightly at climax.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Aaina 2:</strong> "Ye reset nahi hota hai kya?" <em>(Fiddles with remote)</em></div></td><td><div class="cue-name">Mirror Remote Reset (Static)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Short static burst on remote click.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Zuleikha grabs Yusuf's vastra; <strong>Yusuf breaks free &amp; garment stays in her hand</strong>)</em></div></td><td><div class="cue-name">Garment Grabbed (Fabric Rip)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right as the garment tears away!</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Yusuf runs off stage → Lambi chuppi)</em></div></td><td><div class="cue-name">Joseph Runs Away (Footsteps)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play right after rip; fade out Drone into silence.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Zuleikha:</strong> "Lekin… main kya karoon?" <strong>Aaina 1:</strong> "<strong>Politics!</strong>"</div></td><td><div class="cue-name">Mirror: Politics! (Stinger)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "Politics!"</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>BLACKOUT</strong> — <em>Off-stage chase: "Bachao! Pakdo use! Rassi se baandho!"</em></div></td><td><div class="cue-name">Blackout Chase Crowd Murmur</div><span class="badge b-loop">LOOP</span></td><td class="note">Start on Blackout under off-stage chase dialogue.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Servant 1:</strong> "…ise rassi se baandho." <em>(<strong>Crash of cymbals - SILENCE</strong>)</em></div></td><td><div class="cue-name">Crash of Cymbals -&gt; SILENCE</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hard-stop Murmur + slam Cymbal Crash → dead silence!</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 6B -->
+  <section class="scene">
+    <div class="scene-head">10 – Scene 6B (Judgement)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Lights up — Potiphar on throne, Zuleikha beside him, Yusuf tied on knees)</em></div></td><td><div class="cue-name">Royal Court Brass Fanfare</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play 5–8s then fade out before Potiphar speaks.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Potiphar raises hand — <strong>Poori khaamoshi</strong> — looks at Yusuf, then Zuleikha)</em></div></td><td><div class="cue-name">Throne Silence (Tense Heartbeat)</div><span class="badge b-loop">LOOP</span></td><td class="note">Stop right as Potiphar closes his eyes.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Potiphar:</strong> "<strong>Le jao ise… qaidkhaane mein daal do ise.</strong>"</div></td><td><div class="cue-name">Verdict Gavel Slam</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right after verdict line.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Yusuf ko le jaaya jaata hai)</em></div></td><td><div class="cue-name">Take Him to Prison (Chains)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play as guards drag Yusuf off stage.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(End of scene)</em> → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">Heavy Jail Door Slam</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Slam right on Blackout.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- CHORUS 4 -->
+  <section class="scene empty">
+    <div class="scene-head">11 – Chorus 4 ("Scandal") <span class="badge b-empty">EMPTY / LIVE</span></div>
+    <div class="empty-note">Left empty for now (live singing / TBD).</div>
+  </section>
+
+  <!-- SCENE 7 -->
+  <section class="scene">
+    <div class="scene-head">12 – Scene 7 (Potiphar Ki Peeda)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Potiphar alone, covered mirror, Yusuf's robe in hand)</em> "Aaj aaina bhi dhaka hua hai…"</div></td><td><div class="cue-name">Potiphar Guilt (Sad Violin)</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly under monologue; fade out as he sits heavily.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Potiphar:</strong> "<strong>Sach ke Parmeshwar… us jawaan aadmi ki raksha karna.</strong>" → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">Final Prayer (Worship Pad)</div><span class="badge b-loop">LOOP</span></td><td class="note">Fade in under prayer, hold 3–4s into Blackout, fade out.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 8 -->
+  <section class="scene">
+    <div class="scene-head">13 – Scene 8 (Jail Mein Yusuf)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Halki andheri roshni. Jail ki kothri.)</em> "Toh… yahi hai jahaan sach lekar aata hai."</div></td><td><div class="cue-name">Jail Water Drips</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly with reverb under cell monologue.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "Izzat nahi. Inaam nahi. <strong>Zanjeerein.</strong>"</div></td><td><div class="cue-name">Distant Prison Chains</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "Zanjeerein."</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> <em>(Song – <strong>Tu Meri Dhaal</strong>)</em></div></td><td><div class="cue-name"><em>Empty for now</em></div><span class="badge b-empty">LIVE</span></td><td class="note">Fade down drips if needed during live song.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(<strong>Song disrupted by the entry of Butler &amp; Baker</strong>)</em></div></td><td><div class="cue-name">Butler &amp; Baker Burst In (Door)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Loud cell door clang to cut song!</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 9 -->
+  <section class="scene">
+    <div class="scene-head">14 – Scene 9 (Butler and Baker)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Butler:</strong> "Maine teen daaliyon par…" &amp; <strong>Baker:</strong> "Maine dekha ki mere sar par…"</div></td><td><div class="cue-name">Dream Reveal (Harp Glissando)</div><span class="badge b-shot">ONE-SHOT ×2</span></td><td class="note">Trigger once as each prisoner starts their dream.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "…pakshi tumhaara maans noch noch kar khaayenge…" <strong>Baker:</strong> "<strong>Kya?</strong>"</div></td><td><div class="cue-name">Baker Fate Shock (Stinger)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "khaayenge…" / "Kya?"</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "<strong>Sapnon ka arth main nahi, keval Parmeshwar deta hai…</strong>" → <strong>BLACKOUT</strong></div></td><td><div class="cue-name">God Gives Meaning (Stillness)</div><span class="badge b-loop">LOOP</span></td><td class="note">Fade in under final line, hold 3s into Blackout.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 10 -->
+  <section class="scene">
+    <div class="scene-head">15 – Scene 10 (Yusuf Ka Uthna &amp; Arrest)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Neriya:</strong> "…unhone bahut ajeeb sapne dekhe. <strong>Gaayein gaayon ko kha rahi thi.</strong>"</div></td><td><div class="cue-name">Pharaoh Cow Dream (Cow Moo)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Comic cow moo on "gaayon ko kha rahi thi."</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Keziya:</strong> "<strong>Poore Egypt mein ab Yusuf is trending…</strong>"</div></td><td><div class="cue-name">Yusuf Is Trending (Ping)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Hit right on "trending…".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Potiphar (off-stage):</strong> "Zuleikha!" <em>(Friends flee, Potiphar runs in panting)</em></div></td><td><div class="cue-name">Potiphar Running In (Steps)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Play as Potiphar rushes onto stage.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Potiphar:</strong> "<strong>Haan… pradhaanmantri…!!!</strong>"</div></td><td><div class="cue-name">PRADHAANMANTRI Fanfare!</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Big brass blast (4–5s), then fade out.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Potiphar:</strong> "Haan aur use jail mein daalne waale log hum hi hain…" <em>(Realization dawns through confrontation)</em></div></td><td><div class="cue-name">Realization Tense BG (Suspense)</div><span class="badge b-loop">LOOP</span></td><td class="note">Fade in softly (50%); cut sharply on "samajh mein bhi aa raha hai???" into LONG SILENCE.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(LONG SILENCE)</em> <strong>Aaina 1+2:</strong> "<strong>Ooops…!!!</strong>"</div></td><td><div class="cue-name">Mirrors: Ooops! (Record Scratch)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Comic record scratch right on "Ooops…!!!"</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Footsteps of small troop approaching. Fear grows.)</em> <strong>Sainik:</strong> "Captain Potiphar!…"</div></td><td><div class="cue-name">Soldiers Marching Closer</div><span class="badge b-loop">LOOP</span></td><td class="note">Fade in steadily; stop sharply on "Sannaata."</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>BLACKOUT</strong> — <em>Potiphar resisting arrest, soldiers taking him</em></div></td><td><div class="cue-name">Blackout Arrest Armor Clank + Chains</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Trigger Armor Clank + Chains under scuffle dialogue.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Script cue: <strong>"Music takes over"</strong> → transition to Scene 11)</em></div></td><td><div class="cue-name">Music Takes Over (Epic Bridge)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Fade in big as blackout dialogue ends; bridge into Scene 11.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SCENE 11 -->
+  <section class="scene">
+    <div class="scene-head">16 – Scene 11 (Pradhaanmantri Yusuf Ka Kaksh &amp; Finale)</div>
+    <table>
+      <thead><tr><th class="chk">✓</th><th>Script GO Line / Action</th><th>Soundboard Cue</th><th>Operator Note</th></tr></thead>
+      <tbody>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Lights up — Yusuf seated on Judge's throne, Zuleikha &amp; Potiphar standing)</em></div></td><td><div class="cue-name">PM Court Regal Fanfare</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Fade out Epic Bridge; short regal blast before "Mere Prabhu…".</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "Nahi. Jail mein maine ek baat samjhi…" through "Kyunki tum ek achhe aadmi ho…"</div></td><td><div class="cue-name">Forgiveness Warm Stillness</div><span class="badge b-loop">LOOP</span></td><td class="note">Loop softly (55%) under forgiveness speech.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><strong>Yusuf:</strong> "Ab tumhaare governor banne ka din aaya hai…" <em>(<strong>Puts robe on Potiphar</strong>)</em></div></td><td><div class="cue-name">Robe on Potiphar (Warm Uplift)</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Smooth 2s crossfade out of Stillness; stop/fade right before <strong>Aaina 1: "Zuleikha…"</strong> → BLACKOUT.</td></tr>
+        <tr><td class="chk"><input type="checkbox"></td><td><div class="go"><em>(Curtain Call / Cast Bows)</em></div></td><td><div class="cue-name">Curtain Call (Egyptian Groove) + Applause</div><span class="badge b-shot">ONE-SHOT</span></td><td class="note">Upbeat Egyptian groove + optional applause boost!</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => cb.closest('tr').classList.toggle('done', cb.checked));
+  });
+  function resetChecks() {
+    document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => {
+      cb.checked = false;
+      cb.closest('tr').classList.remove('done');
+    });
+  }
+</script>
+</body>
+</html>
