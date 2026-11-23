@@ -422,7 +422,11 @@ export default function App() {
           <main className="main-content">
             {isLoadingDefault && cues.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon" style={{ fontSize: '3rem', marginBottom: '16px' }}>🎧</div>
+                <img
+                  src={`${import.meta.env.BASE_URL}LOGO.svg`}
+                  alt="Logo"
+                  style={{ height: '72px', width: 'auto', marginBottom: '16px' }}
+                />
                 <h2>Loading Potiphar Ki Patni Soundboard...</h2>
                 <p>Unpacking scenes and audio cues, please wait a moment.</p>
               </div>

@@ -15,7 +15,12 @@ export function Header({
     <header className="header">
       <div className="header-left">
         <div className="header-logo">
-          <span>🎛️</span> Soundboard
+          <img
+            src={`${import.meta.env.BASE_URL}LOGO.svg`}
+            alt="Logo"
+            style={{ height: '32px', width: 'auto', display: 'block' }}
+          />
+          <span>Soundboard</span>
         </div>
         <div className="header-actions">
           <button className="btn btn-primary" onClick={onAddScene}>
