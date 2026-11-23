@@ -22,6 +22,7 @@ export class ProjectManager {
         trimStart: c.trimStart,
         trimEnd: c.trimEnd,
         speed: c.speed,
+        reverb: c.reverb,
         playNext: c.playNext,
         hotkey: c.hotkey,
       }))

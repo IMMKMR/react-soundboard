@@ -18,11 +18,38 @@ export default function App() {
   const [editingCueId, setEditingCueId] = useState(null);
 
   const [selectedMixerTrackId, setSelectedMixerTrackId] = useState(null);
+  const [isLoadingDefault, setIsLoadingDefault] = useState(true);
   
   const cuesRef = React.useRef(cues);
   useEffect(() => {
     cuesRef.current = cues;
   }, [cues]);
+
+  // Auto-load bundled Potiphar Ki Patni soundboard on startup
+  useEffect(() => {
+    let cancelled = false;
+    const loadDefault = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.BASE_URL}PotipharKiPatni.soundboard`);
+        if (!res.ok) return;
+        const blob = await res.blob();
+        if (cancelled) return;
+        const project = await ProjectManager.importProject(blob);
+        if (cancelled) return;
+        setCues(project.cues);
+        const newScenes = new Set(['default']);
+        project.cues.forEach(c => c.scene && newScenes.add(c.scene));
+        setScenes(Array.from(newScenes).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })));
+        setFileMap(project.fileMap);
+      } catch (e) {
+        console.error("Failed to auto-load default soundboard:", e);
+      } finally {
+        if (!cancelled) setIsLoadingDefault(false);
+      }
+    };
+    loadDefault();
+    return () => { cancelled = true; };
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -123,9 +150,9 @@ export default function App() {
       // Auto-parse scene
       let name = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ');
       let scene = 'default';
-      const sceneMatch = name.match(/^(?:scene|sc)?\s*(\d+(?:\.\d+)?)\s*(.*)/i);
+      const sceneMatch = name.match(/^(?:scene|sc|s)?\s*(\d+)(?:\.\d+)?\s*[-–]?\s*(.*)/i);
       if (sceneMatch) {
-        scene = `Scene ${sceneMatch[1]}`;
+        scene = `Scene ${parseInt(sceneMatch[1], 10)}`;
         name = sceneMatch[2].trim();
       }
       if (name.length > 0) {
@@ -351,7 +378,7 @@ export default function App() {
   // Project Management
   const handleSaveProject = async () => {
     try {
-      await ProjectManager.exportProject(cues, fileMap, "MyWorkspace");
+      await ProjectManager.exportProject(cues, fileMap, "PotipharKiPatni");
     } catch (e) {
       alert("Failed to save project: " + e.message);
     }
@@ -393,6 +420,13 @@ export default function App() {
       <div className="content-wrapper">
         <div className="middle-section">
           <main className="main-content">
+            {isLoadingDefault && cues.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon" style={{ fontSize: '3rem', marginBottom: '16px' }}>🎧</div>
+                <h2>Loading Potiphar Ki Patni Soundboard...</h2>
+                <p>Unpacking scenes and audio cues, please wait a moment.</p>
+              </div>
+            ) : (
             <SoundGrid 
               cues={cues}
               scenes={scenes}
@@ -412,6 +446,7 @@ export default function App() {
                 if (cue) saveEdit(id, { loop: !cue.loop });
               }}
             />
+            )}
           </main>
           
           <aside className="pinned-sidebar">

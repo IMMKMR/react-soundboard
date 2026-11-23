@@ -35,3 +35,6 @@ dist-ssr
 *.crdownload
 *.lnk
 *.soundboard
+!public/PotipharKiPatni.soundboard
+_old_play/
+new_sounds/
