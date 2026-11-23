@@ -30,7 +30,7 @@ export default function App() {
     let cancelled = false;
     const loadDefault = async () => {
       try {
-        const res = await fetch(`${import.meta.env.BASE_URL}PotipharKiPatni.soundboard`);
+        const res = await fetch(`${import.meta.env.BASE_URL}PotipharKiPatni.zip`);
         if (!res.ok) return;
         const blob = await res.blob();
         if (cancelled) return;
